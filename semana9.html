@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Centro de Captura - Calculadora Interactiva</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eef2f7;
+      color: #333;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #2b4162;
+    }
+    table {
+      margin: auto;
+      border-collapse: collapse;
+      width: 90%;
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ccc;
+    }
+    th {
+      background-color: #dbe9f4;
+    }
+    input {
+      width: 70px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      text-align: center;
+    }
+    #resultados {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin: 20px auto;
+      width: 90%;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+    canvas {
+      background: #fff;
+      border-radius: 10px;
+      margin-top: 20px;
+      padding: 20px;
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #2b4162;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1b2a45;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Centro de Captura</h1>
+<h2>Calculadora Interactiva con Validación y Gráfica</h2>
+
+<table id="dataTable">
+  <thead>
+    <tr>
+      <th>Pareja</th><th>X</th><th>Y</th><th>X²</th><th>Y²</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<button onclick="calcular()">Calcular</button>
+
+<div id="resultados"></div>
+
+<canvas id="grafica" width="800" height="400"></canvas>
+
+<script>
+const datosIniciales = [
+  [90, 0.8], [30, 0.5], [50, 1.5], [20, 0.6], [100, 0.4],
+  [70, 2.0], [20, 2.0], [80, 1.0], [30, 2.4], [90, 1.7]
+];
+
+function crearTabla() {
+  const tbody = document.querySelector("#dataTable tbody");
+  tbody.innerHTML = "";
+  datosIniciales.forEach((par, i) => {
+    const [x, y] = par;
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${i + 1}</td>
+      <td><input type="number" value="${x}" id="x${i}"></td>
+      <td><input type="number" step="0.1" value="${y}" id="y${i}"></td>
+      <td><input type="number" value="${x*x}" id="x2_${i}"></td>
+      <td><input type="number" step="0.01" value="${(y*y).toFixed(2)}" id="y2_${i}"></td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function calcular() {
+  let X = [], Y = [], X2 = [], Y2 = [], XY = [];
+  let valid = true;
+
+  for (let i = 0; i < 10; i++) {
+    const x = parseFloat(document.getElementById("x" + i).value);
+    const y = parseFloat(document.getElementById("y" + i).value);
+    const x2 = parseFloat(document.getElementById("x2_" + i).value);
+    const y2 = parseFloat(document.getElementById("y2_" + i).value);
+    if (x * x !== x2 || Math.abs(y * y - y2) > 0.01) valid = false;
+    X.push(x);
+    Y.push(y);
+    X2.push(x2);
+    Y2.push(y2);
+    XY.push(x * y);
+  }
+
+  const sum = arr => arr.reduce((a, b) => a + b, 0);
+  const n = X.length;
+  const sumX = sum(X), sumY = sum(Y), sumXY = sum(XY), sumX2 = sum(X2), sumY2 = sum(Y2);
+
+  const b = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX ** 2);
+  const a = (sumY - b * sumX) / n;
+  const r = ((n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX ** 2) * (n * sumY2 - sumY ** 2))).toFixed(4);
+
+  const estimarX = y => ((y - a) / b).toFixed(2);
+  const estimarY = x => (a + b * x).toFixed(2);
+
+  const div = document.getElementById("resultados");
+  if (!valid) {
+    div.innerHTML = '<p class="error">Hay errores en X² o Y². Corrígelos para ver los resultados.</p>';
+    return;
+  }
+
+  div.innerHTML = `
+    <ul>
+      <li>∑X = ${sumX.toFixed(2)}</li>
+      <li>∑Y = ${sumY.toFixed(2)}</li>
+      <li>∑X² = ${sumX2.toFixed(2)}</li>
+      <li>∑Y² = ${sumY2.toFixed(2)}</li>
+      <li>∑XY = ${sumXY.toFixed(2)}</li>
+      <li>Pendiente (b) = ${b.toFixed(4)}</li>
+      <li>Ordenada al origen (a) = ${a.toFixed(4)}</li>
+      <li>Coeficiente de correlación (r) = ${r}</li>
+      <li>Semanas para 0.5 min ≈ ${estimarX(0.5)}</li>
+      <li>Semanas para 0.4 min ≈ ${estimarX(0.4)}</li>
+      <li>Tiempo con 120 semanas ≈ ${estimarY(120)}</li>
+    </ul>
+  `;
+
+  dibujarGrafica(X, Y, a, b);
+}
+
+let grafica;
+function dibujarGrafica(X, Y, a, b) {
+  const ctx = document.getElementById("grafica").getContext("2d");
+  if (grafica) grafica.destroy();
+  grafica = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Datos',
+        data: X.map((x, i) => ({ x, y: Y[i] })),
+        backgroundColor: '#2b4162',
+      }, {
+        label: 'Recta de regresión',
+        type: 'line',
+        data: [
+          { x: Math.min(...X), y: a + b * Math.min(...X) },
+          { x: Math.max(...X), y: a + b * Math.max(...X) }
+        ],
+        borderColor: '#f25f5c',
+        fill: false,
+        tension: 0
+      }]
+    },
+    options: {
+      scales: {
+        x: { title: { display: true, text: 'Semanas de Experiencia (X)' } },
+        y: { title: { display: true, text: 'Tiempo de Captura (Y)' } }
+      }
+    }
+  });
+}
+
+crearTabla();
+</script>
+<a href="index.html" class="btn-regreso">Volver al Menú</a>
+</body>
+</html>

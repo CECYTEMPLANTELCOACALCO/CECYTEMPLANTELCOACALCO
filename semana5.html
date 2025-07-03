@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Frecuencias</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0fdf4;
+      color: #1a3e2c;
+      margin: 40px;
+    }
+
+    h2, h3 {
+      color: #207744;
+    }
+
+    textarea, button {
+      font-size: 16px;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #cce3d5;
+      background-color: #ffffff;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #d0e6d8;
+      text-align: center;
+    }
+
+    th {
+      background-color: #207744;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #e7f6ed;
+    }
+
+    ul#medidas {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    ul#medidas li {
+      background: #d9f0e3;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-left: 5px solid #28a745;
+      border-radius: 5px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>Calculadora de Tablas de Frecuencias</h2>
+
+  <label for="inputEdades">Ingresa las edades separadas por comas:</label><br>
+  <textarea id="inputEdades" rows="4" cols="60">14,17,16,16,16,17,14,18,16,17,18,16,18,15,15,17,14,17,17,17,19,15,17,15,17,16,15,17,17,18,16,15,17,19,14,18,15,18,15,17,16,17,19,14,17,15,15,18,15,17</textarea><br>
+  <button onclick="calcularFrecuencias()">Calcular</button>
+
+  <h3>Tabla de Frecuencias</h3>
+  <table id="tablaFrecuencias">
+    <thead>
+      <tr>
+        <th>Edad</th>
+        <th>Frecuencia Absoluta</th>
+        <th>Frecuencia Acumulada</th>
+        <th>Frecuencia Relativa</th>
+        <th>Frecuencia Porcentual</th>
+        <th>Grados</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Medidas de Tendencia Central</h3>
+  <ul id="medidas">
+    <li><strong>Media:</strong> <span id="media"></span></li>
+    <li><strong>Moda:</strong> <span id="moda"></span></li>
+    <li><strong>Mediana:</strong> <span id="mediana"></span></li>
+  </ul>
+
+  <script>
+    function calcularFrecuencias() {
+      const input = document.getElementById('inputEdades').value;
+      const edades = input.split(',').map(e => parseInt(e.trim())).filter(e => !isNaN(e));
+      const total = edades.length;
+
+      const frecuencias = {};
+      edades.forEach(e => frecuencias[e] = (frecuencias[e] || 0) + 1);
+
+      const edadesUnicas = Object.keys(frecuencias).map(Number).sort((a, b) => a - b);
+      const tbody = document.querySelector("#tablaFrecuencias tbody");
+      tbody.innerHTML = '';
+
+      let fa = 0;
+      edadesUnicas.forEach(edad => {
+        const f = frecuencias[edad];
+        fa += f;
+        const fr = (f / total).toFixed(4);
+        const fp = (fr * 100).toFixed(2);
+        const grados = (fp * 3.6).toFixed(2);
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${edad}</td>
+            <td>${f}</td>
+            <td>${fa}</td>
+            <td>${fr}</td>
+            <td>${fp}%</td>
+            <td>${grados}°</td>
+          </tr>
+        `;
+      });
+
+      // Media
+      const suma = edades.reduce((a, b) => a + b, 0);
+      const media = (suma / total).toFixed(2);
+
+      // Mediana
+      const ordenado = [...edades].sort((a, b) => a - b);
+      let mediana;
+      if (total % 2 === 0) {
+        mediana = ((ordenado[total / 2 - 1] + ordenado[total / 2]) / 2).toFixed(2);
+      } else {
+        mediana = ordenado[Math.floor(total / 2)];
+      }
+
+      // Moda
+      const maxFrecuencia = Math.max(...Object.values(frecuencias));
+      const modas = Object.keys(frecuencias).filter(k => frecuencias[k] === maxFrecuencia);
+
+      document.getElementById('media').innerText = media;
+      document.getElementById('mediana').innerText = mediana;
+      document.getElementById('moda').innerText = modas.join(', ');
+    }
+  </script>
+<a href="index.html" class="btn-regreso">Volver al Menú</a>
+</body>
+</html>

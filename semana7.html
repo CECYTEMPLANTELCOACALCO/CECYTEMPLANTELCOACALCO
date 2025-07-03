@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Medidas de Posición</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 30px;
+      background-color: #f5fff5;
+      color: #2e4d2e;
+    }
+
+    nav {
+      margin-bottom: 20px;
+      background-color: #a8d5a8;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    nav a {
+      margin-right: 20px;
+      text-decoration: none;
+      color: #1b5e20;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    h2, h3, h4 {
+      color: #2e7d32;
+    }
+
+    textarea, input, select {
+      font-size: 16px;
+      padding: 5px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    button {
+      background-color: #66bb6a;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    .seccion {
+      display: none;
+    }
+
+    .activa {
+      display: block;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    ul li {
+      background: #e8f5e9;
+      margin-bottom: 5px;
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-top: 10px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    table, th, td {
+      border: 1px solid #c8e6c9;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #81c784;
+    }
+
+    #resultadoPersonalizado {
+      font-size: 18px;
+      color: #1b5e20;
+      background-color: #dcedc8;
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="#" onclick="mostrarSeccion('semana6')">Semana 6 - MTC</a>
+    <a href="#" onclick="mostrarSeccion('semana7')">Semana 7 - Medidas de Posición</a>
+  </nav>
+
+  <!-- Semana 7 -->
+  <div id="semana7" class="seccion activa">
+    <h2>Semana 7 - Calculadora de Medidas de Posición</h2>
+
+    <h3>I. Tabla de Frecuencia</h3>
+    <textarea id="frecuencia" rows="10">18,4
+19,6
+20,5
+21,6
+22,8
+23,6
+24,5
+25,4
+26,4
+27,2</textarea><br>
+    <button onclick="calcularFrecuencia()">Calcular</button>
+
+    <h4>Resultados</h4>
+    <ul>
+      <li>Q1 = <span id="q1_frec"></span></li>
+      <li>Q3 = <span id="q3_frec"></span></li>
+      <li>D1 = <span id="d1_frec"></span></li>
+      <li>D5 = <span id="d5_frec"></span></li>
+      <li>P12 = <span id="p12_frec"></span></li>
+      <li>P51 = <span id="p51_frec"></span></li>
+      <li>P89 = <span id="p89_frec"></span></li>
+    </ul>
+
+    <h3>II. Lista de Datos Simples</h3>
+    <input id="datosSimples" type="text" value="17,15,29,32,45,26,19,40,26,9">
+    <button onclick="calcularLista()">Calcular</button>
+
+    <table>
+      <tr><th>Parámetro</th><th>Posición</th><th>Valor</th></tr>
+      <tr><td>Q1</td><td id="q1_pos"></td><td id="q1_val"></td></tr>
+      <tr><td>D3</td><td id="d3_pos"></td><td id="d3_val"></td></tr>
+      <tr><td>P65</td><td id="p65_pos"></td><td id="p65_val"></td></tr>
+    </table>
+
+    <h3>III. Cálculo Personalizado de Q, D o P</h3>
+    <label>Valor (1-3 para Q, 1-9 para D, 1-99 para P):</label>
+    <input type="number" id="valor" min="1" max="99">
+    <select id="tipo">
+      <option value="q">Cuartil (Q)</option>
+      <option value="d">Decil (D)</option>
+      <option value="p">Percentil (P)</option>
+    </select>
+    <button onclick="calcularPersonalizado()">Calcular</button>
+
+    <p><strong>Resultado:</strong> <span id="resultadoPersonalizado"></span></p>
+  </div>
+
+  <!-- Semana 6 -->
+  <div id="semana6" class="seccion">
+    <h2>Semana 6 - Medidas de Tendencia Central</h2>
+    <p>Aquí se insertará la calculadora de moda, media, mediana...</p>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    function mostrarSeccion(id) {
+      document.querySelectorAll('.seccion').forEach(sec => sec.classList.remove('activa'));
+      document.getElementById(id).classList.add('activa');
+    }
+
+    function expandirFrecuencias(data) {
+      let resultado = [];
+      data.forEach(([valor, frec]) => {
+        for (let i = 0; i < frec; i++) resultado.push(valor);
+      });
+      return resultado.sort((a, b) => a - b);
+    }
+
+    function calcularFrecuencia() {
+      const texto = document.getElementById('frecuencia').value.trim().split('\n');
+      const pares = texto.map(l => l.split(',').map(Number)).filter(p => p.length === 2 && !isNaN(p[0]) && !isNaN(p[1]));
+      const lista = expandirFrecuencias(pares);
+      calcularPosiciones(lista, 'frec');
+    }
+
+    function calcularLista() {
+      const texto = document.getElementById('datosSimples').value;
+      const lista = texto.split(',').map(e => parseFloat(e)).filter(e => !isNaN(e)).sort((a, b) => a - b);
+      calcularPosiciones(lista, 'simple');
+    }
+
+    function calcularPosiciones(lista, tipo) {
+      const n = lista.length;
+      function pos(p) {
+        const i = (p / 100) * (n + 1);
+        const base = Math.floor(i) - 1;
+        const dec = i - Math.floor(i);
+        if (base < 0) return lista[0];
+        if (base + 1 >= n) return lista[n - 1];
+        return lista[base] + dec * (lista[base + 1] - lista[base]);
+      }
+
+      const q1 = pos(25).toFixed(2);
+      const q3 = pos(75).toFixed(2);
+      const d1 = pos(10).toFixed(2);
+      const d5 = pos(50).toFixed(2);
+      const p12 = pos(12).toFixed(2);
+      const p51 = pos(51).toFixed(2);
+      const p89 = pos(89).toFixed(2);
+      const d3 = pos(30).toFixed(2);
+      const p65 = pos(65).toFixed(2);
+
+      if (tipo === 'frec') {
+        document.getElementById('q1_frec').innerText = q1;
+        document.getElementById('q3_frec').innerText = q3;
+        document.getElementById('d1_frec').innerText = d1;
+        document.getElementById('d5_frec').innerText = d5;
+        document.getElementById('p12_frec').innerText = p12;
+        document.getElementById('p51_frec').innerText = p51;
+        document.getElementById('p89_frec').innerText = p89;
+      } else {
+        document.getElementById('q1_pos').innerText = "25%";
+        document.getElementById('q1_val').innerText = q1;
+        document.getElementById('d3_pos').innerText = "30%";
+        document.getElementById('d3_val').innerText = d3;
+        document.getElementById('p65_pos').innerText = "65%";
+        document.getElementById('p65_val').innerText = p65;
+      }
+    }
+
+    function calcularPersonalizado() {
+      const datos = document.getElementById('datosSimples').value;
+      const lista = datos.split(',').map(e => parseFloat(e)).filter(e => !isNaN(e)).sort((a, b) => a - b);
+      const tipo = document.getElementById('tipo').value;
+      const valor = parseInt(document.getElementById('valor').value);
+      const n = lista.length;
+
+      if ((tipo === 'q' && (valor < 1 || valor > 3)) ||
+          (tipo === 'd' && (valor < 1 || valor > 9)) ||
+          (tipo === 'p' && (valor < 1 || valor > 99))) {
+        document.getElementById('resultadoPersonalizado').innerText = "Número fuera de rango.";
+        return;
+      }
+
+      let porcentaje;
+      if (tipo === 'q') porcentaje = valor * 25;
+      if (tipo === 'd') porcentaje = valor * 10;
+      if (tipo === 'p') porcentaje = valor;
+
+      const i = (porcentaje / 100) * (n + 1);
+      const base = Math.floor(i) - 1;
+      const dec = i - Math.floor(i);
+      let resultado;
+
+      if (base < 0) resultado = lista[0];
+      else if (base + 1 >= n) resultado = lista[n - 1];
+      else resultado = lista[base] + dec * (lista[base + 1] - lista[base]);
+
+      const tipoTexto = tipo === 'q' ? 'Cuartil' : tipo === 'd' ? 'Decil' : 'Percentil';
+      document.getElementById('resultadoPersonalizado').innerText = `${tipoTexto} ${valor}: ${resultado.toFixed(2)}`;
+    }
+  </script>
+<a href="index.html" class="btn-regreso">Volver al Menú</a>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora Estadística Completa</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f9f0;
+      color: #2d572c;
+      padding: 30px;
+    }
+
+    h2, h3 {
+      color: #1c4d1c;
+      border-bottom: 2px solid #98c9a3;
+      padding-bottom: 5px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #a7d7a2;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background-color: #f8fff8;
+    }
+
+    button {
+      background-color: #4caf50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a045;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #a7d7a2;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #d2efd3;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f1fbf1;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      background-color: #e1f4e1;
+      border-radius: 8px;
+      margin-top: 10px;
+      padding: 10px 15px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    canvas {
+      max-width: 600px;
+      margin-top: 30px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h2>Calculadora de Medidas de Tendencia Central</h2>
+  <label>Introduce las edades separadas por comas:</label><br>
+  <input type="text" id="datos" value="18,20,19,22,22,21,21,22,20,19,21,21,23,21,21,22,19,20,18,22,21,23,22,21,23,22,23,20,18,23,21,19,18,21,20,22,22,20,21,21,20,21,19,20,21,21,22,20,23,21">
+  <button onclick="calcular()">Calcular</button>
+
+  <h3>Tabla de Frecuencia</h3>
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>Efectivo</th><th>F. Absoluta</th><th>F. Acumulada</th>
+        <th>F. Relativa</th><th>F. Porcentual</th><th>Grados</th><th>E×F</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Resultados</h3>
+  <ul id="resultados"></ul>
+
+  <canvas id="graficaBarras"></canvas>
+  <canvas id="graficaPoligonal"></canvas>
+  <canvas id="graficaHistograma"></canvas>
+  <canvas id="graficaCircular"></canvas>
+
+<script>
+function calcular() {
+  const entrada = document.getElementById('datos').value;
+  const datos = entrada.split(',').map(e => parseInt(e.trim())).filter(e => !isNaN(e));
+  const conteo = {};
+  datos.forEach(e => conteo[e] = (conteo[e] || 0) + 1);
+  const clases = Object.keys(conteo).map(e => parseInt(e)).sort((a,b) => a-b);
+  const total = datos.length;
+
+  let fAc = 0, sumaEF = 0;
+  const tabla = document.querySelector('#tabla tbody');
+  tabla.innerHTML = "";
+  const valores = [];
+
+  const frecs = [], labels = [], fRel = [];
+
+  clases.forEach(valor => {
+    const fAbs = conteo[valor];
+    fAc += fAbs;
+    const frel = (fAbs / total).toFixed(2);
+    const fPor = (fAbs / total * 100).toFixed(2);
+    const grados = (fAbs / total * 360).toFixed(0);
+    const exf = valor * fAbs;
+    sumaEF += exf;
+    tabla.innerHTML += `<tr>
+      <td>${valor}</td><td>${fAbs}</td><td>${fAc}</td>
+      <td>${frel}</td><td>${fPor}%</td><td>${grados}°</td><td>${exf}</td>
+    </tr>`;
+    for (let i = 0; i < fAbs; i++) valores.push(valor);
+    labels.push(String(valor));
+    frecs.push(fAbs);
+    fRel.push(frel);
+  });
+
+  const moda = clases.reduce((a,b) => conteo[a] > conteo[b] ? a : b);
+  const media = (sumaEF / total).toFixed(2);
+  valores.sort((a,b) => a-b);
+  const mediana = total % 2 === 0 ?
+      ((valores[total/2 - 1] + valores[total/2]) / 2).toFixed(2) :
+      valores[Math.floor(total/2)];
+  const Q1 = valores[Math.floor(total * 0.25)];
+  const Q3 = valores[Math.floor(total * 0.75)];
+
+  const resultados = document.getElementById('resultados');
+  resultados.innerHTML = `
+    <li><strong>Moda:</strong> ${moda}</li>
+    <li><strong>Mediana:</strong> ${mediana}</li>
+    <li><strong>Media Aritmética:</strong> ${media}</li>
+    <li><strong>Cuartil Inferior (Q1):</strong> ${Q1}</li>
+    <li><strong>Cuartil Superior (Q3):</strong> ${Q3}</li>
+  `;
+
+  // Limpiar gráficos anteriores
+  Chart.getChart("graficaBarras")?.destroy();
+  Chart.getChart("graficaCircular")?.destroy();
+  Chart.getChart("graficaPoligonal")?.destroy();
+  Chart.getChart("graficaHistograma")?.destroy();
+
+  // Gráfica de Barras
+  new Chart(document.getElementById('graficaBarras'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{ label: 'Frecuencia', data: frecs, backgroundColor: '#66bb6a' }]
+    },
+    options: {
+      plugins: { title: { display: true, text: 'Gráfica de Barras' } }
+    }
+  });
+
+  // Gráfica Poligonal
+  new Chart(document.getElementById('graficaPoligonal'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{ label: 'Frecuencia', data: frecs, borderColor: '#2e7d32', backgroundColor: '#c8e6c9', fill: false }]
+    },
+    options: {
+      plugins: { title: { display: true, text: 'Gráfica Poligonal' } }
+    }
+  });
+
+  // Histograma
+  new Chart(document.getElementById('graficaHistograma'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{ label: 'Frecuencia', data: frecs, backgroundColor: '#81c784' }]
+    },
+    options: {
+      plugins: { title: { display: true, text: 'Histograma' } },
+      scales: { x: { stacked: true }, y: { beginAtZero: true } }
+    }
+  });
+
+  // Gráfica Circular
+  new Chart(document.getElementById('graficaCircular'), {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{ data: frecs, backgroundColor: labels.map(() => `hsl(${Math.random()*80 + 100},60%,65%)`) }]
+    },
+    options: {
+      plugins: { title: { display: true, text: 'Gráfica Circular' } }
+    }
+  });
+}
+</script>
+<a href="index.html" class="btn-regreso">Volver al Menú</a>
+</body>
+</html>

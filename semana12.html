@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Tabla de Frecuencias</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0fff0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #2e7d32;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #c8e6c9;
+      padding: 6px;
+      text-align: center;
+    }
+    th {
+      background-color: #a5d6a7;
+      color: #1b5e20;
+    }
+    input[type="text"], input[type="number"] {
+      width: 80px;
+      padding: 4px;
+      border: 1px solid #81c784;
+      border-radius: 4px;
+      text-align: center;
+    }
+    button {
+      background-color: #66bb6a;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: block;
+      margin: auto;
+    }
+    button:hover {
+      background-color: #388e3c;
+    }
+    .resumen {
+      text-align: center;
+      font-size: 18px;
+      background: #e8f5e9;
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 500px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Calculadora de Tabla de Frecuencias (9 columnas)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Intervalo</th>
+      <th>FR</th>
+      <th>MC</th>
+      <th>FR·MC</th>
+      <th>ME</th>
+      <th>|MC - ME|</th>
+      <th>FR·|MC - ME|</th>
+      <th>(MC - ME)²</th>
+      <th>FR·(MC - ME)²</th>
+    </tr>
+  </thead>
+  <tbody id="tabla">
+    <!-- 6 filas por defecto -->
+    <script>
+      for (let i = 0; i < 6; i++) {
+        document.write(`<tr>
+          <td><input type="text" id="intervalo${i}" placeholder="Ej. 24-37"></td>
+          <td><input type="number" id="fr${i}" value="0"></td>
+          <td id="mc${i}">-</td>
+          <td id="frmc${i}">-</td>
+          <td id="me${i}">-</td>
+          <td id="abs${i}">-</td>
+          <td id="frabs${i}">-</td>
+          <td id="cuad${i}">-</td>
+          <td id="frcuad${i}">-</td>
+        </tr>`);
+      }
+    </script>
+  </tbody>
+</table>
+
+<button onclick="calcular()">Calcular</button>
+
+<div class="resumen">
+  <p><strong>Media (ME):</strong> <span id="media"></span></p>
+  <p><strong>Desviación Media:</strong> <span id="desvmedia"></span></p>
+  <p><strong>Varianza:</strong> <span id="varianza"></span></p>
+  <p><strong>Desviación Estándar:</strong> <span id="desvest"></span></p>
+</div>
+
+<script>
+function calcular() {
+  const n = 6;
+  let sumFR = 0, sumFRMC = 0;
+  const FR = [], MC = [];
+
+  for (let i = 0; i < n; i++) {
+    const intervalo = document.getElementById(`intervalo${i}`).value;
+    const partes = intervalo.split('-').map(x => parseFloat(x.trim()));
+    const fr = parseFloat(document.getElementById(`fr${i}`).value) || 0;
+    FR[i] = fr;
+    sumFR += fr;
+
+    let mc = 0;
+    if (partes.length === 2 && !isNaN(partes[0]) && !isNaN(partes[1])) {
+      mc = (partes[0] + partes[1]) / 2;
+    }
+    MC[i] = mc;
+    document.getElementById(`mc${i}`).innerText = mc.toFixed(2);
+    document.getElementById(`frmc${i}`).innerText = (fr * mc).toFixed(2);
+    sumFRMC += fr * mc;
+  }
+
+  const media = sumFRMC / sumFR;
+  document.getElementById("media").innerText = media.toFixed(2);
+
+  let sumaAbs = 0, sumaCuad = 0;
+
+  for (let i = 0; i < n; i++) {
+    const abs = Math.abs(MC[i] - media);
+    const frAbs = FR[i] * abs;
+    const cuad = Math.pow(MC[i] - media, 2);
+    const frCuad = FR[i] * cuad;
+
+    sumaAbs += frAbs;
+    sumaCuad += frCuad;
+
+    document.getElementById(`me${i}`).innerText = media.toFixed(2);
+    document.getElementById(`abs${i}`).innerText = abs.toFixed(2);
+    document.getElementById(`frabs${i}`).innerText = frAbs.toFixed(2);
+    document.getElementById(`cuad${i}`).innerText = cuad.toFixed(2);
+    document.getElementById(`frcuad${i}`).innerText = frCuad.toFixed(2);
+  }
+
+  const desvMedia = sumaAbs / sumFR;
+  const varianza = sumaCuad / sumFR;
+  const desvEstandar = Math.sqrt(varianza);
+
+  document.getElementById("desvmedia").innerText = desvMedia.toFixed(2);
+  document.getElementById("varianza").innerText = varianza.toFixed(2);
+  document.getElementById("desvest").innerText = desvEstandar.toFixed(2);
+}
+</script>
+<a href="index.html" class="btn-regreso">Volver al Menú</a>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Menú Curso de Probabilidad y Estadística</title>
+  <style>
+    body {
+      position: relative;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      overflow: hidden;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .background-image {
+      position: fixed;
+      inset: 0;
+      background-image: url('cecy.png');
+      background-size: 300px auto;
+      background-position: center center;
+      background-repeat: no-repeat;
+      filter: brightness(0.5);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      max-width: 700px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header::before {
+      content: "";
+      background-image: url('PROYECTOBALLINAS/cecy.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.06;
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    header h1,
+    header h2,
+    header h3 {
+      position: relative;
+      z-index: 1;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 36px;
+      font-weight: 600;
+      animation: fadeInTitle 2s ease-in-out;
+    }
+
+    @keyframes fadeInTitle {
+      0% {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    header h2,
+    header h3 {
+      margin: 8px 0;
+      font-weight: 400;
+      color: #d0d0d0;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 25px 40px;
+      max-width: 700px;
+      width: 100%;
+      padding: 30px 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    nav a {
+      position: relative;
+      color: #008000; /* verde */
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 20px;
+      padding: 16px 40px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(220, 230, 255, 0.2));
+      box-shadow:
+        inset 0 0 8px rgba(255, 255, 255, 0.8),
+        0 4px 8px rgba(0, 74, 173, 0.3);
+      transition:
+        background 0.3s ease,
+        box-shadow 0.4s ease,
+        color 0.3s ease,
+        transform 0.25s ease;
+      backdrop-filter: saturate(150%) blur(6px);
+      -webkit-backdrop-filter: saturate(150%) blur(6px);
+      border: 1px solid rgba(0, 74, 173, 0.3);
+      overflow: hidden;
+      text-shadow: 0 0 5px rgba(0,0,0,0.7);
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(white 10%, transparent 11%);
+      background-size: 10px 10px;
+      opacity: 0.1;
+      animation: shimmer 3s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes shimmer {
+      from { transform: translateX(0); }
+      to { transform: translateX(100%); }
+    }
+
+    nav a:nth-child(2n) {
+      margin-top: 10px;
+    }
+
+    nav a:hover {
+      background: linear-gradient(135deg, rgba(240, 248, 255, 0.4), rgba(210, 225, 255, 0.3));
+      box-shadow:
+        inset 0 0 12px rgba(255, 255, 255, 1),
+        0 6px 12px rgba(0, 74, 173, 0.5);
+      color: #004d00; /* verde oscuro */
+      transform: translateY(-3px);
+    }
+
+    nav a:active {
+      background: linear-gradient(135deg, rgba(200, 210, 240, 0.4), rgba(180, 195, 230, 0.3));
+      box-shadow:
+        inset 0 0 10px rgba(255, 255, 255, 0.9),
+        0 3px 6px rgba(0, 74, 173, 0.3);
+      color: #002600; /* verde muy oscuro */
+      transform: translateY(1px);
+    }
+
+    @media (max-width: 600px) {
+      nav {
+        gap: 15px 20px;
+        padding: 15px 20px;
+      }
+      nav a {
+        padding: 14px 24px;
+        font-size: 18px;
+        margin-top: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-image"></div>
+
+  <header>
+    <h1>Curso de Probabilidad y Estadística</h1>
+    <h2>CECYTEM Plantel Coacalco</h2>
+    <h3>Semanas 5 a 14</h3>
+  </header>
+
+  <nav>
+    <a href="semana5.html">Semana 5</a>
+    <a href="semana6.html">Semana 6</a>
+    <a href="semana7.html">Semana 7</a>
+    <a href="semana8.html">Semana 8</a>
+    <a href="semana9.html">Semana 9</a>
+    <a href="semana10.html">Semana 10</a>
+    <a href="semana11.html">Semana 11</a>
+    <a href="semana12.html">Semana 12</a>
+    <a href="semana13.html">Semana 13</a>
+    <a href="semana14.html">Semana 14</a>
+  </nav>
+</body>
+</html>

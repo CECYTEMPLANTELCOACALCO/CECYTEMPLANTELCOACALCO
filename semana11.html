@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Estadística</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #e8f5e9;
+      color: #1b5e20;
+      padding: 30px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #81c784;
+      padding: 8px;
+      background-color: #f1f8e9;
+    }
+    input {
+      width: 90%;
+      padding: 6px;
+      border: 1px solid #66bb6a;
+      background-color: #f9fbe7;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Semana 11 - Medidas de Tendencia Central</h2>
+
+  <label>Introduce los datos separados por coma:</label><br>
+  <input type="text" id="data" value="53,97,52,50,50,61,71,66,39,90,37,76,81,85,58,84,49,86,63,68,28,24,52,74,101,24,46,24,74,63,81,50,99,102,61,53,67,92,45,72" oninput="calcStats()">
+
+  <table>
+    <thead>
+      <tr><th>Parámetro</th><th>Valor</th></tr>
+    </thead>
+    <tbody id="statsBody"></tbody>
+  </table>
+
+  <script>
+    function calcStats() {
+      const data = document.getElementById('data').value.split(',').map(Number).sort((a, b) => a - b);
+      const n = data.length;
+      const sum = data.reduce((a, b) => a + b, 0);
+      const media = (sum / n).toFixed(2);
+
+      // Moda
+      const freq = {};
+      data.forEach(val => freq[val] = (freq[val] || 0) + 1);
+      const maxFreq = Math.max(...Object.values(freq));
+      const moda = Object.keys(freq).filter(k => freq[k] === maxFreq).join(', ');
+
+      // Mediana
+      const mediana = (n % 2 === 0)
+        ? ((data[n / 2 - 1] + data[n / 2]) / 2).toFixed(2)
+        : data[Math.floor(n / 2)];
+
+      // Cuartil, Decil, Percentil
+      const getPos = (p) => Math.ceil((p / 100) * n) - 1;
+      const q3 = data[getPos(75)];
+      const d5 = data[getPos(50)];
+      const p17 = data[getPos(17)];
+
+      const body = document.getElementById('statsBody');
+      body.innerHTML = `
+        <tr><td>Media</td><td>${media}</td></tr>
+        <tr><td>Moda</td><td>${moda}</td></tr>
+        <tr><td>Mediana</td><td>${mediana}</td></tr>
+        <tr><td>3er Cuartil</td><td>${q3}</td></tr>
+        <tr><td>5° Decil</td><td>${d5}</td></tr>
+        <tr><td>17 Percentil</td><td>${p17}</td></tr>
+      `;
+    }
+
+    calcStats();
+  </script>
+<a href="index.html" class="btn-regreso">Volver al Menú</a>
+</body>
+</html>

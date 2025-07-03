@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>III EL CALZADO - Calculadora Estadística</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e6f4e6;
+      color: #004d00;
+      padding: 20px;
+    }
+    h2, h3 {
+      color: #006600;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #004d00;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #b3ffb3;
+    }
+    #mensajeError {
+      color: red;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 60px;
+    }
+  </style>
+</head>
+<body>
+  <h2>TEMAS INTEGRADORES - III EL CALZADO</h2>
+  <h3>Datos por talla (editable)</h3>
+  <p>Ingresa los datos individuales del número de calzado:</p>
+  <textarea id="datos" rows="4" style="width: 100%;">14,17,16,16,16,18,14,16,16,17,19,17,16,16,16,16,17,18,16,18,15,15,19,17,16,16,18,17,17,16,17,19,15,19,17,18,17,16,15,18,17,17,16,18,16,19,18,15,18,16,15,15,18,15,19,16,18,15,14,18,19,14,18,15,17,16,18,17,19,14,16,16,15,17,19,15,14,15,19,18</textarea>
+  <br><br>
+  <button onclick="validarYContarDatos()">Validar y Calcular</button>
+  <p id="mensajeError"></p>
+
+  <div id="frecuenciaInputs" style="display:none">
+    <h3>Frecuencias por talla</h3>
+    <table>
+      <thead>
+        <tr><th>Talla</th><th>Frecuencia</th></tr>
+      </thead>
+      <tbody id="tablaInputs"></tbody>
+    </table>
+    <br>
+    <button onclick="validarYCalcular()">Validar Frecuencias y Calcular Resultados</button>
+  </div>
+
+  <div id="resultados" style="display:none">
+    <h3>1. Tabla de Frecuencias</h3>
+    <table id="tablaFrecuencias">
+      <thead>
+        <tr>
+          <th>VALOR</th>
+          <th>FRECUENCIA</th>
+          <th>FRECUENCIA ACUMULADA</th>
+          <th>FRECUENCIA RELATIVA</th>
+          <th>FRECUENCIA PORCENTUAL</th>
+          <th>GRADOS</th>
+          <th>EXF</th>
+          <th>|Xi - PROM|</th>
+          <th>FR|Xi - MEDIA|</th>
+          <th>(Xi - PROM)^2</th>
+          <th>FR(Xi - PROM)^2</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>2. Medidas de tendencia central y dispersión</h3>
+    <table>
+      <thead><tr><th>M.T.C</th><th>RESULTADO</th></tr></thead>
+      <tbody>
+        <tr><td>Moda</td><td id="moda"></td></tr>
+        <tr><td>Mediana</td><td id="mediana"></td></tr>
+        <tr><td>Media aritmética</td><td id="media"></td></tr>
+        <tr><td>Desviación media</td><td id="desviacionMedia"></td></tr>
+        <tr><td>Varianza</td><td id="varianza"></td></tr>
+        <tr><td>Desviación estándar</td><td id="desviacionEstandar"></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function contarFrecuencias(datos) {
+      const conteo = {};
+      datos.forEach(n => conteo[n] = (conteo[n] || 0) + 1);
+      return conteo;
+    }
+
+    function validarYContarDatos() {
+      const texto = document.getElementById("datos").value;
+      const numeros = texto.split(/[,\s]+/).map(n => parseInt(n)).filter(n => !isNaN(n));
+
+      if (numeros.length !== 80) {
+        document.getElementById("mensajeError").textContent = `Debes ingresar exactamente 80 valores. Actualmente hay ${numeros.length}.`;
+        document.getElementById("frecuenciaInputs").style.display = "none";
+        document.getElementById("resultados").style.display = "none";
+        return;
+      }
+
+      const frecuencias = contarFrecuencias(numeros);
+      const tablaInputs = document.getElementById("tablaInputs");
+      tablaInputs.innerHTML = "";
+
+      Object.entries(frecuencias).sort((a,b)=>a[0]-b[0]).forEach(([talla, freq]) => {
+        tablaInputs.innerHTML += `<tr><td>${talla}</td><td><input type='number' id='f${talla}' value='${freq}'></td></tr>`;
+      });
+
+      document.getElementById("mensajeError").textContent = "";
+      document.getElementById("frecuenciaInputs").style.display = "block";
+    }
+
+    function validarYCalcular() {
+      const filas = Array.from(document.querySelectorAll("#tablaInputs tr"));
+      const valores = [];
+      const frecuencias = [];
+
+      for (let fila of filas) {
+        const valor = parseInt(fila.children[0].textContent);
+        const freq = parseInt(fila.children[1].children[0].value);
+        if (isNaN(freq)) {
+          document.getElementById("mensajeError").textContent = "Todos los valores deben ser números válidos.";
+          return;
+        }
+        valores.push(valor);
+        frecuencias.push(freq);
+      }
+
+      const suma = frecuencias.reduce((a,b)=>a+b,0);
+      if (suma !== 80) {
+        document.getElementById("mensajeError").textContent = `La suma debe ser exactamente 80. Actualmente es ${suma}.`;
+        document.getElementById("resultados").style.display = "none";
+        return;
+      }
+
+      document.getElementById("mensajeError").textContent = "";
+      document.getElementById("resultados").style.display = "block";
+      calcular(valores, frecuencias);
+    }
+
+    function calcular(valores, frecuencias) {
+      const total = frecuencias.reduce((a, b) => a + b);
+      const tbody = document.querySelector("#tablaFrecuencias tbody");
+      tbody.innerHTML = "";
+
+      const EXF = valores.map((v, i) => v * frecuencias[i]);
+      const media = EXF.reduce((a, b) => a + b) / total;
+
+      let fa = 0;
+      let datos = [];
+
+      valores.forEach((valor, i) => {
+        const f = frecuencias[i];
+        fa += f;
+        const fr = f / total;
+        const fp = fr * 100;
+        const grados = fp * 3.6;
+        const absDif = Math.abs(valor - media);
+        const frAbs = fr * absDif;
+        const dif2 = Math.pow(valor - media, 2);
+        const frDif2 = fr * dif2;
+
+        datos.push({ valor, f, fa, fr, fp, grados, exf: EXF[i], absDif, frAbs, dif2, frDif2 });
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${valor}</td>
+            <td>${f}</td>
+            <td>${fa}</td>
+            <td>${fr.toFixed(4)}</td>
+            <td>${fp.toFixed(2)}%</td>
+            <td>${grados.toFixed(2)}°</td>
+            <td>${EXF[i]}</td>
+            <td>${absDif.toFixed(2)}</td>
+            <td>${frAbs.toFixed(4)}</td>
+            <td>${dif2.toFixed(2)}</td>
+            <td>${frDif2.toFixed(4)}</td>
+          </tr>`;
+      });
+
+      const maxF = Math.max(...frecuencias);
+      const moda = valores.filter((v, i) => frecuencias[i] === maxF).join(', ');
+
+      let pos = total / 2;
+      let acumulado = 0;
+      let mediana = 0;
+      for (let i = 0; i < frecuencias.length; i++) {
+        acumulado += frecuencias[i];
+        if (acumulado >= pos) {
+          mediana = valores[i];
+          break;
+        }
+      }
+
+      const desvMedia = datos.reduce((sum, d) => sum + d.frAbs, 0).toFixed(4);
+      const varianza = datos.reduce((sum, d) => sum + d.frDif2, 0).toFixed(4);
+      const desvEst = Math.sqrt(varianza).toFixed(4);
+
+      document.getElementById("moda").innerText = moda;
+      document.getElementById("mediana").innerText = mediana;
+      document.getElementById("media").innerText = media.toFixed(4);
+      document.getElementById("desviacionMedia").innerText = desvMedia;
+      document.getElementById("varianza").innerText = varianza;
+      document.getElementById("desviacionEstandar").innerText = desvEst;
+    }
+  </script>
+<a href="index.html" class="btn-regreso">Volver al Menú</a>
+</body>
+</html>

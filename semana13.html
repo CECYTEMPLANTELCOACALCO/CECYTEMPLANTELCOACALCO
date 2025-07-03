@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora Estadística COVID-19</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+    }
+    h2, h3 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+    th, td {
+      border: 1px solid #bbb;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+    input[type="number"] {
+      width: 60px;
+    }
+    input[readonly] {
+      background-color: #eee;
+      border: none;
+    }
+    button {
+      background-color: #2ecc71;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #27ae60;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Calculadora Estadística: Casos COVID-19</h2>
+
+<h3>Edades registradas (20 datos)</h3>
+<div id="inputs" style="text-align:center;">
+  <p>Introduce o edita los datos:</p>
+  <div id="data-inputs">
+    <!-- Inputs generados por JS -->
+  </div>
+</div>
+
+<div style="text-align:center; margin: 20px 0;">
+  <button onclick="calcularEstadisticas()">Calcular Estadísticas</button>
+</div>
+
+<h3>Resultados</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Bloque Estadístico</th>
+      <th>Resultado</th>
+    </tr>
+  </thead>
+  <tbody id="resultados">
+    <!-- Resultados insertados por JS -->
+  </tbody>
+</table>
+
+<script>
+const edadesBase = [15, 25, 47, 35, 32, 18, 18, 39, 42, 42, 28, 41, 53, 29, 38, 52, 50, 39, 48, 54];
+
+window.onload = () => {
+  const container = document.getElementById('data-inputs');
+  edadesBase.forEach((edad, i) => {
+    container.innerHTML += `<input type="number" id="edad${i}" value="${edad}" /> `;
+    if ((i + 1) % 5 === 0) container.innerHTML += '<br>';
+  });
+};
+
+function calcularEstadisticas() {
+  const datos = [];
+  for (let i = 0; i < 20; i++) {
+    datos.push(parseInt(document.getElementById(`edad${i}`).value));
+  }
+  datos.sort((a, b) => a - b);
+
+  const n = datos.length;
+  const min = Math.min(...datos);
+  const max = Math.max(...datos);
+  const rango = max - min;
+  const k = Math.ceil(Math.sqrt(n)); // Número de intervalos
+  const intervalo = Math.ceil(rango / k);
+
+  const promedio = +(datos.reduce((a, b) => a + b, 0) / n).toFixed(2);
+  const mediana = (n % 2 === 0) ? (datos[n/2 - 1] + datos[n/2]) / 2 : datos[Math.floor(n/2)];
+
+  // Moda
+  const freq = {};
+  datos.forEach(e => freq[e] = (freq[e] || 0) + 1);
+  const maxFreq = Math.max(...Object.values(freq));
+  const moda = Object.keys(freq).filter(k => freq[k] === maxFreq).join(", ");
+
+  // Desviaciones
+  const desvMedia = +(datos.reduce((acc, val) => acc + Math.abs(val - promedio), 0) / n).toFixed(2);
+  const varianza = +(datos.reduce((acc, val) => acc + Math.pow(val - promedio, 2), 0) / n).toFixed(2);
+  const desvEstandar = +(Math.sqrt(varianza)).toFixed(2);
+
+  // Percentiles
+  const pos3_4 = datos[Math.floor(0.75 * n)];
+  const pos7_10 = datos[Math.floor(0.7 * n)];
+  const pos58_100 = datos[Math.floor(0.58 * n)];
+
+  // Coeficientes
+  const coefVariacion = +((desvEstandar / promedio) * 100).toFixed(2);
+
+  // Simetría y curtosis (aproximaciones)
+  const asimetria = +((3 * (promedio - mediana)) / desvEstandar).toFixed(2);
+  const curtosis = +(n * datos.reduce((a, x) => a + Math.pow(x - promedio, 4), 0) / (Math.pow(varianza, 2) * n)).toFixed(2);
+
+  const resultados = [
+    ["Número de intervalos", k],
+    ["Tamaño de intervalo", intervalo],
+    ["Intervalo de mayor contagio", `${min}-${min + intervalo - 1}`],
+    ["Intervalo de menor contagio", `${max - intervalo + 1}-${max}`],
+    ["Moda", moda],
+    ["Mediana", mediana],
+    ["Promedio de edad de contagio", promedio],
+    ["Desviación media", desvMedia],
+    ["Varianza", varianza],
+    ["Desviación estándar", desvEstandar],
+    ["Rango", rango],
+    ["Edad ubicada a ¾ de la población", pos3_4],
+    ["Edad ubicada en 7/10 de la población", pos7_10],
+    ["Edad ubicada en el lugar 58/100 de la población", pos58_100],
+    ["Coeficiente de variación", coefVariacion + " %"],
+    ["Coeficiente de asimetría", asimetria],
+    ["Coeficiente de Curtosis", curtosis]
+  ];
+
+  const tabla = document.getElementById("resultados");
+  tabla.innerHTML = resultados.map(([clave, valor]) =>
+    `<tr><td>${clave}</td><td>${valor}</td></tr>`).join("");
+}
+</script>
+<a href="index.html" class="btn-regreso">Volver al Menú</a>
+</body>
+</html>

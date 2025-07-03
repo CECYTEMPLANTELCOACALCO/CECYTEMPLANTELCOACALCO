@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora - Reclutamiento</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      padding: 30px;
+    }
+    h2 {
+      color: #1b5e20;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #81c784;
+      padding: 8px;
+      text-align: center;
+      background-color: #f1f8e9;
+    }
+    input[type="text"] {
+      width: 80%;
+      padding: 6px;
+      border: 1px solid #66bb6a;
+      background: #f9fbe7;
+      color: #2e7d32;
+    }
+    .highlight {
+      background-color: #c8e6c9;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Tema VI: Reclutamiento y Probabilidades</h2>
+
+  <label>Datos de aciertos (separados por coma):</label><br>
+  <input id="scores" type="text" value="70,76,74,75,71,69,78,77,71,65" oninput="calculateStats()">
+  <p>
+    <strong>Promedio:</strong> <span id="mean"></span> |
+    <strong>Desviación estándar:</strong> <span id="stddev"></span>
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Probabilidad de obtener</th>
+        <th>Valor Z</th>
+        <th>Valor Tabla</th>
+        <th>Resultado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>72 aciertos</td><td class="z72"></td><td class="p72"></td><td class="r72"></td></tr>
+      <tr><td>85 aciertos</td><td class="z85"></td><td class="p85"></td><td class="r85"></td></tr>
+      <tr><td>Máximo 80</td><td class="z80"></td><td class="p80"></td><td class="r80"></td></tr>
+      <tr><td>Mínimo 60</td><td class="z60"></td><td class="p60"></td><td class="r60"></td></tr>
+      <tr><td>Entre 69 y 85</td><td colspan="3" class="r69_85"></td></tr>
+      <tr><td>Entre 75 y 82</td><td colspan="3" class="r75_82"></td></tr>
+      <tr><td>Máximo 68</td><td class="z68"></td><td class="p68"></td><td class="r68"></td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    function zScore(x, mean, std) {
+      return (x - mean) / std;
+    }
+
+    function zTable(z) {
+      return Math.round((0.5 * (1 + Math.erf(z / Math.SQRT2))) * 10000) / 10000;
+    }
+
+    function calculateStats() {
+      const values = document.getElementById('scores').value.split(',').map(Number);
+      const mean = values.reduce((a, b) => a + b) / values.length;
+      const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / values.length;
+      const stddev = Math.sqrt(variance);
+
+      document.getElementById('mean').textContent = mean.toFixed(2);
+      document.getElementById('stddev').textContent = stddev.toFixed(2);
+
+      const targets = [72, 85, 80, 60, 68];
+      targets.forEach(t => {
+        const z = zScore(t, mean, stddev);
+        const p = zTable(z);
+        document.querySelector(`.z${t}`).textContent = z.toFixed(2);
+        document.querySelector(`.p${t}`).textContent = p;
+        document.querySelector(`.r${t}`).textContent = (p * 100).toFixed(2) + "%";
+      });
+
+      function rangeProb(a, b) {
+        const z1 = zScore(a, mean, stddev);
+        const z2 = zScore(b, mean, stddev);
+        const p1 = zTable(z1);
+        const p2 = zTable(z2);
+        return ((p2 - p1) * 100).toFixed(2) + "%";
+      }
+
+      document.querySelector(".r69_85").textContent = rangeProb(69, 85);
+      document.querySelector(".r75_82").textContent = rangeProb(75, 82);
+    }
+
+    calculateStats();
+  </script>
+<a href="index.html" class="btn-regreso">Volver al Menú</a>
+</body>
+</html>

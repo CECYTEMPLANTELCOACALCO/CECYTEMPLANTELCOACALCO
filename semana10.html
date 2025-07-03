@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Semana 10 - Tabla de Frecuencias</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e9f5ea;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2e7d32;
+    }
+    table, th, td {
+      border: 1px solid #2e7d32;
+      border-collapse: collapse;
+      padding: 6px;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      margin-bottom: 20px;
+      background: #fff;
+    }
+    th {
+      background: #a5d6a7;
+    }
+    input[type="number"] {
+      width: 60px;
+    }
+    canvas {
+      background: #fff;
+      margin-top: 20px;
+    }
+    .oculto {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Semana 10 - Tabla de Frecuencias</h1>
+
+  <h3>Ingresa los pesos (kg):</h3>
+  <table id="tablaPesos"></table>
+
+  <h3>Tabla de Frecuencias:</h3>
+  <table id="tablaFrecuencias">
+    <thead>
+      <tr>
+        <th>Intervalos</th>
+        <th>FREC</th>
+        <th>FREL</th>
+        <th>FAC (Ingresa)</th>
+        <th>FPOR (%)</th>
+        <th>GRADOS</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <canvas id="histograma" width="600" height="300" class="oculto"></canvas>
+  <canvas id="graficaCircular" width="300" height="300" class="oculto"></canvas>
+
+  <script>
+    const datos = new Array(40).fill(0);
+    let intervalosGlobales = [];
+
+    function crearTablaPesos() {
+      const tabla = document.getElementById("tablaPesos");
+      let html = "<tr>";
+      for (let i = 0; i < 40; i++) {
+        html += `<td><input type='number' value='${datos[i]}' onchange='actualizarDato(${i}, this.value)' /></td>`;
+        if ((i + 1) % 10 === 0) html += "</tr><tr>";
+      }
+      html += "</tr>";
+      tabla.innerHTML = html;
+    }
+
+    function actualizarDato(index, valor) {
+      datos[index] = Number(valor);
+      calcularFrecuencias();
+    }
+
+    function calcularFrecuencias() {
+      const datosValidos = datos.filter(d => !isNaN(d) && d > 0);
+      if (datosValidos.length === 0) return;
+
+      const min = Math.min(...datosValidos);
+      const max = Math.max(...datosValidos);
+      const rango = max - min;
+      const k = Math.ceil(Math.sqrt(datosValidos.length));
+      const amplitud = Math.ceil(rango / k);
+
+      let intervalos = [];
+      let ini = Math.floor(min);
+      for (let i = 0; i < k; i++) {
+        let fin = ini + amplitud - 1;
+        intervalos.push({ min: ini, max: fin, frec: 0 });
+        ini = fin + 1;
+      }
+
+      datosValidos.forEach(valor => {
+        let intervalo = intervalos.find(i => valor >= i.min && valor <= i.max);
+        if (intervalo) intervalo.frec++;
+      });
+
+      intervalosGlobales = intervalos;
+      renderTablaFrecuencias();
+    }
+
+    function renderTablaFrecuencias() {
+      const cuerpoTabla = document.querySelector("#tablaFrecuencias tbody");
+      cuerpoTabla.innerHTML = "";
+      const total = datos.filter(d => !isNaN(d) && d > 0).length;
+      let sumaFAC = 0;
+
+      intervalosGlobales.forEach((i, idx) => {
+        const frel = (i.frec / total).toFixed(2);
+        const fpor = (frel * 100).toFixed(2);
+        const grados = (frel * 360).toFixed(2);
+        cuerpoTabla.innerHTML += `
+          <tr>
+            <td>${i.min} - ${i.max}</td>
+            <td>${i.frec}</td>
+            <td>${frel}</td>
+            <td><input type='number' onchange='verificarFAC(${idx}, this)' /></td>
+            <td id='fpor${idx}'>-</td>
+            <td id='grados${idx}'>-</td>
+          </tr>`;
+      });
+    }
+
+    function verificarFAC(index, input) {
+      const facIngresada = Number(input.value);
+      let suma = 0;
+      for (let i = 0; i <= index; i++) {
+        suma += intervalosGlobales[i].frec;
+      }
+
+      if (facIngresada === suma) {
+        document.getElementById(`fpor${index}`).innerText = ((intervalosGlobales[index].frec / datos.length) * 100).toFixed(2);
+        document.getElementById(`grados${index}`).innerText = ((intervalosGlobales[index].frec / datos.length) * 360).toFixed(2);
+
+        // Si es el último FAC correcto, generar gráficas
+        const ultimosFAC = document.querySelectorAll("#tablaFrecuencias tbody input[type='number']");
+        const todosCorrectos = Array.from(ultimosFAC).every((inp, i) => {
+          let esperado = 0;
+          for (let j = 0; j <= i; j++) esperado += intervalosGlobales[j].frec;
+          return Number(inp.value) === esperado;
+        });
+
+        if (todosCorrectos) {
+          document.getElementById("histograma").classList.remove("oculto");
+          document.getElementById("graficaCircular").classList.remove("oculto");
+          dibujarHistograma(intervalosGlobales);
+          dibujarGraficaCircular(intervalosGlobales);
+        }
+      } else {
+        document.getElementById(`fpor${index}`).innerText = "-";
+        document.getElementById(`grados${index}`).innerText = "-";
+      }
+    }
+
+    function dibujarHistograma(intervalos) {
+      const ctx = document.getElementById("histograma").getContext("2d");
+      if (window.histogramaChart) window.histogramaChart.destroy();
+      window.histogramaChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: intervalos.map(i => `${i.min}-${i.max}`),
+          datasets: [{
+            label: 'Frecuencia',
+            data: intervalos.map(i => i.frec),
+            backgroundColor: '#66bb6a'
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function dibujarGraficaCircular(intervalos) {
+      const ctx = document.getElementById("graficaCircular").getContext("2d");
+      if (window.circularChart) window.circularChart.destroy();
+      window.circularChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: intervalos.map(i => `${i.min}-${i.max}`),
+          datasets: [{
+            label: 'Grados',
+            data: intervalos.map(i => i.frec),
+            backgroundColor: [
+              '#81c784', '#4caf50', '#388e3c', '#2e7d32', '#1b5e20', '#a5d6a7'
+            ]
+          }]
+        }
+      });
+    }
+
+    crearTablaPesos();
+  </script>
+<a href="index.html" class="btn-regreso">Volver al Menú</a>
+</body>
+</html>
